@@ -1,0 +1,27 @@
+# Compiled source #
+###################
+*.exe
+main
+*.o
+
+
+
+# Temporary files #
+###################
+structure_auto.xmi
+*~
+.directory
+*.save
+log.txt
+tests.txt
+
+# Project files #
+#################
+*.layout
+*.depend
+bin/
+*.pro.user
+*.user
+
+# Documentation files #
+#######################
