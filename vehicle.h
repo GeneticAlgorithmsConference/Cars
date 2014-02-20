@@ -13,6 +13,8 @@
 #include "Box2D/Box2D.h"
 #include "AngleVector.h"
 
+
+
 class Vehicle
 {
 public:
@@ -48,7 +50,7 @@ public:
     double getY();
 
     // Genetic
-    static void crossover(Vehicle *veh1, Vehicle *veh2);
+    static void crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *veh4);
     void mutate(int maxMutationsCount);
 
     static int waitingTime;
@@ -94,6 +96,8 @@ private:
 
     double vectorLength;
     double wheelRadius;
+
+    static double recombine_param;
 
     b2Vec2 lastUpdatePoint;
 };

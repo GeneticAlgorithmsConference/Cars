@@ -56,6 +56,7 @@ private:
     double bestResult;
     QVector <double> resData;
     QVector <Vehicle*> vehData;
+    QVector <Vehicle*> nextVehicles;
 
 
     int vehiclePointsNum;

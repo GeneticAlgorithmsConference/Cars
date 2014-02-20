@@ -21,6 +21,7 @@ Map::Map()
     lengthTotal = 1000.0;
     lengthStartEnd = 5.0 * maxDeltaX;
     showInfo = false;
+    populationIndex = 1;
 
     leftPopulation = new Population(3, true, true);
     rightPopulation = new Population(3, true, false);
@@ -240,7 +241,7 @@ void Map::tick()
                 lastRemoveUpdate = QTime::currentTime();
                 leftPopulation -> genNextGeneration();
                 rightPopulation -> genNextGeneration();
-                save(QDir::currentPath() + "/Saves/AutoSave/");
+                save(QDir::currentPath() + "/Saves/AutoSave" + QString::number(populationIndex++) + "/");
                 updateAllPhysics();
             } else if(!endTimerStarted) {
                 endTimerStarted = true;
@@ -259,6 +260,7 @@ void Map::tick()
                 if(leftPopulation -> currentEnd())
                 {
                     leftPopulation -> genNextGeneration();
+                    save(QDir::currentPath() + "/Saves/AutoSave" + QString::number(populationIndex++) + "/");
                 }
                 updateAllPhysics();
             } else if(!endTimerStarted) {
@@ -290,6 +292,7 @@ void Map::vehicleRemoveTest()
                 if(leftPopulation -> currentEnd())
                 {
                     leftPopulation -> genNextGeneration();
+                    save(QDir::currentPath() + "/Saves/AutoSave" + QString::number(populationIndex++) + "/");
                 }
                 updateAllPhysics();
             } else if((leftPopulation -> getCurrentVehicle() -> GetPosition().x >= lengthTotal + 2.0 * lengthStartEnd)
@@ -300,6 +303,7 @@ void Map::vehicleRemoveTest()
                 if(leftPopulation -> currentEnd())
                 {
                     leftPopulation -> genNextGeneration();
+                    save(QDir::currentPath() + "/Saves/AutoSave" + QString::number(populationIndex++) + "/");
                 }
                 updateAllPhysics();
             }

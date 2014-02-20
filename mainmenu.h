@@ -109,11 +109,13 @@ private:
     QSlider *vehicleVectorLengthEdit;
     QSlider *vehicleWheelsSizeEdit;
 
+    QComboBox* recombinationTypeEdit;
     QCheckBox *manualEngineControlEdit;
 
     QTimer *timer;
 
     QTime lastUpdateTime;
+    QTime lastScreenshot;
 
     Map *map;
     double translateX;

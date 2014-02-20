@@ -2,6 +2,7 @@
 #define MAP_H
 
 #include <QBrush>
+#include <QDebug>
 #include <QFont>
 #include <QTime>
 #include <QDir>
@@ -40,6 +41,9 @@ public:
     void setMinDeltaY(double value);
     void setMaxDeltaY(double value);
     void setWaitingTime(int value);
+
+
+    int populationIndex;
 private:
     Population *leftPopulation;
     Population *rightPopulation;

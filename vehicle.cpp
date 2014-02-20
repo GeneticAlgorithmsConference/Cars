@@ -1,11 +1,14 @@
 #include <cmath>
 #include <qmath.h>
 #include <QPair>
+#include <QDebug>
 
 #include "vehicle.h"
+#include "genetic.h"
 
 int Vehicle::waitingTime = 5000;
 double Vehicle::minLength = 1.0;
+double Vehicle::recombine_param = 0.5;
 
 Vehicle::Vehicle(int _x, int _y, int _pointsNum, int _maxWheelsNum)
 {
@@ -28,6 +31,7 @@ Vehicle::Vehicle(int _x, int _y, int _pointsNum, int _maxWheelsNum)
 
     leftSide = true;
     motorEnabled = true;
+    body = NULL;
 }
 
 Vehicle::~Vehicle()
@@ -421,11 +425,13 @@ double Vehicle::getY()
     return y;
 }
 
-void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2)
+void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *veh4)
 {
     // Преобразование машины в ДНК
-    QVector<double> dna1 = (veh1 -> getDNA());
-    QVector<double> dna2 = (veh2 -> getDNA());
+    QVector <double> dna1 = (veh1 -> getDNA());
+    QVector <double> dna2 = (veh2 -> getDNA());
+    QVector <double> dna3(dna1.size());
+    QVector <double> dna4(dna1.size());
 
     int point_num = veh1 -> pointsNum;
 
@@ -439,9 +445,156 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2)
         dna2[i] = tmp;
     }
 
-    // Пересчитывается количество колёс, чтобы не привысить максимальное.
-    QVector <int> veh1Wheels;
-    QVector <int> veh2Wheels;
+    switch(recombinationType)
+    {
+        case Genetic::DISCRETE:
+        {
+            for(int i = 0; i < dna1.size(); ++i)
+            {
+                if(rand() & 1)
+                {
+                    dna3[i] = dna1[i];
+                } else {
+                    dna3[i] = dna2[i];
+                }
+                if(rand() & 1)
+                {
+                    dna4[i] = dna1[i];
+                } else {
+                    dna4[i] = dna2[i];
+                }
+            }
+            break;
+        }
+        case Genetic::INTERMEDIATE:
+        {
+             for(int i = 0; i < dna1.size(); ++i)
+             {
+                 double alpha1 = static_cast<double>(rand() % 1000) / 1000.0 * (1.0 + 2.0 * recombine_param) - recombine_param;
+                 double alpha2 = static_cast<double>(rand() % 1000) / 1000.0 * (1.0 + 2.0 * recombine_param) - recombine_param;
+                 double v[2];
+                 v[0] = dna1[i] + alpha1 * (dna2[i] - dna1[i]);
+                 v[1] = dna1[i] + alpha2 * (dna2[i] - dna1[i]);
+                 dna3[i] = v[0];
+                 dna4[i] = v[1];
+             }
+             break;
+         }
+         case Genetic::LINE:
+         {
+             double alpha1 = static_cast<double>(rand() % 1000) / 1000.0 * (1.0 + 2.0 * recombine_param) - recombine_param;
+             double alpha2 = static_cast<double>(rand() % 1000) / 1000.0 * (1.0 + 2.0 * recombine_param) - recombine_param;
+             for(int i = 0; i < dna1.size(); ++i)
+             {
+                 double v[2];
+                 v[0] = dna1[i] + alpha1 * (dna2[i] - dna1[i]);
+                 v[1] = dna1[i] + alpha2 * (dna2[i] - dna1[i]);
+                 dna3[i] = v[0];
+                 dna4[i] = v[1];
+             }
+             break;
+         }
+         case Genetic::CROSSOVER:
+         {
+             int crossover_points_num = recombine_param;
+             assert(dna1.size() > 1);
+             assert(dna1.size() >= crossover_points_num);
+             assert(crossover_points_num > 0);
+
+             // Setting dividing points
+             std::vector <int> free_points(dna1.size());
+             std::vector <int> crossover_points(crossover_points_num);
+             for(int i = 0; i < free_points.size(); ++i)
+             {
+                 free_points[i] = i;
+             }
+             for(int i = 0; i < crossover_points_num; ++i)
+             {
+                 int choosed_point_id = rand() % free_points.size();
+                 int choosed_point = free_points[choosed_point_id];
+                 free_points.erase(free_points.begin() + choosed_point_id);
+                 crossover_points[i] = choosed_point;
+             }
+
+             std::sort(crossover_points.begin(), crossover_points.end());
+             if(crossover_points[crossover_points.size() - 1]
+                != dna1.size() - 1)
+             {
+                 crossover_points.push_back(dna1.size() - 1);
+             }
+
+             int last_crossover_point = 0;
+             int next_crossover_point;
+             bool current_inverse = false;
+
+             for(int i = 0; i < crossover_points.size(); ++i)
+             {
+                 int crossover_point = crossover_points[i];
+                 next_crossover_point = (i < crossover_points_num - 1) ?
+                     crossover_points[i + 1] :
+                     dna1.size();
+
+
+                 if(current_inverse)
+                 {
+                     for(int j = last_crossover_point; j <= crossover_point; ++j)
+                     {
+                         dna3[j] = dna2[j];
+                         dna4[j] = dna1[j];
+                     }
+                 } else {
+                     for(int j = last_crossover_point; j <= crossover_point; ++j)
+                     {
+                         dna3[j] = dna1[j];
+                         dna4[j] = dna2[j];
+                     }
+                 }
+
+                 last_crossover_point = crossover_point;
+                 current_inverse = !current_inverse;
+             }
+             break;
+         }
+         case Genetic::UNIFORM_CROSSOVER:
+         {
+             for(int i = 0; i < dna1.size(); ++i)
+             {
+                 if(rand() & 1)
+                 {
+                     dna1[i] = dna1[i];
+                     dna2[i] = dna2[i];
+                 } else {
+                     dna1[i] = dna2[i];
+                     dna2[i] = dna1[i];
+                 }
+             }
+             break;
+         }
+         case Genetic::SHUFFLER_CROSSOVER:
+         {
+             for(int i = 0; i < dna1.size(); ++i)
+             {
+                 if(rand() & 1)
+                 {
+                     std::swap(dna1[i], dna2[i]);
+                 }
+             }
+//             recombine(parent_Individual1, parent_Individual2,
+//                       child_Individual1, child_Individual2, &ts);
+             for(int i = 0; i < dna1.size(); ++i)
+             {
+                 if(rand() & 1)
+                 {
+                     std::swap(dna1[i], dna2[i]);
+                 }
+             }
+             break;
+         }
+    }
+
+//    // Пересчитывается количество колёс, чтобы не привысить максимальное.
+//    QVector <int> veh1Wheels;
+//    QVector <int> veh2Wheels;
     // Восстановление машин из ДНК
     for(int i = 0; i < point_num; ++i)
     {
@@ -463,19 +616,47 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2)
         veh2 -> vectors[i].radius = dna2[i * 8 + 6];
         veh2 -> vectors[i].motorSpeed = dna2[i * 8 + 7];
 
+        veh3 -> vectors[i].angle = dna3[i * 8];
+        veh3 -> vectors[i].length = dna3[i * 8 + 1];
+        veh3 -> vectors[i].r = dna3[i * 8 + 2];
+        veh3 -> vectors[i].g = dna3[i * 8 + 3];
+        veh3 -> vectors[i].b = dna3[i * 8 + 4];
+        veh3 -> vectors[i].wheel = dna3[i * 8 + 5];
+        veh3 -> vectors[i].radius = dna3[i * 8 + 6];
+        veh3 -> vectors[i].motorSpeed = dna3[i * 8 + 7];
+
+        veh4 -> vectors[i].angle = dna4[i * 8];
+        veh4 -> vectors[i].length = dna4[i * 8 + 1];
+        veh4 -> vectors[i].r = dna4[i * 8 + 2];
+        veh4 -> vectors[i].g = dna4[i * 8 + 3];
+        veh4 -> vectors[i].b = dna4[i * 8 + 4];
+        veh4 -> vectors[i].wheel = dna4[i * 8 + 5];
+        veh4 -> vectors[i].radius = dna4[i * 8 + 6];
+        veh4 -> vectors[i].motorSpeed = dna4[i * 8 + 7];
+
         // Подсчёт количетсва колёс у каждого автомобиля
-        if(veh1 -> vectors[i].wheel)
-        {
-            veh1Wheels.push_back(i);
-        }
-        if(veh2 -> vectors[i].wheel)
-        {
-            veh2Wheels.push_back(i);
-        }
+//        if(veh1 -> vectors[i].wheel)
+//        {
+//            veh1Wheels.push_back(i);
+//        }
+//        if(veh2 -> vectors[i].wheel)
+//        {
+//            veh2Wheels.push_back(i);
+//        }
+//        if(veh3 -> vectors[i].wheel)
+//        {
+//            veh3Wheels.push_back(i);
+//        }
+//        if(veh4 -> vectors[i].wheel)
+//        {
+//            veh4Wheels.push_back(i);
+//        }
     }
 
     veh1 -> setDNA(dna1);
     veh2 -> setDNA(dna2);
+    veh3 -> setDNA(dna3);
+    veh4 -> setDNA(dna4);
 }
 
 void Vehicle::mutate(int maxMutationsCount)

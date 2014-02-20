@@ -1,4 +1,5 @@
 #include <QPair>
+#include <QDebug>
 
 #include "population.h"
 #include "vehicle.h"
@@ -72,53 +73,56 @@ void Population::testFinish()
 void Population::genNextGeneration()
 {
     // Селекция
-    QVector < QPair<double, Vehicle*> > selData;
     QPair <double, Vehicle*> tmpPair;
-    for(int i = 0; i < populationSize; ++i)
+
+    if(nextVehicles.empty())
     {
-        tmpPair.first = resData[i];
-        tmpPair.second = vehData[i];
-        selData.push_back(tmpPair);
-    }
-    for(int i = 0; i < populationSize; ++i)
-    {
-        for(int j = 0; j < populationSize - i - 1; ++j)
+        nextVehicles.resize(populationSize * 2);
+        for(int i = 0; i < populationSize; ++i)
         {
-            if(selData[j + 1] > selData[j])
+            nextVehicles[i] = vehData[i];
+        }
+        for(int i = 0; i < populationSize; ++i)
+        {
+            nextVehicles[populationSize + i] = new Vehicle(5.0 * (populationType ? (i + 1) : 1.0), 5.0,
+                                                           vehiclePointsNum, vehicleMaxWheelsNum);
+            nextVehicles[populationSize + i] -> setVectorLength(vehicleVectorLength);
+            nextVehicles[populationSize + i] -> setWheelRadius(vehicleWheelsSize);
+            nextVehicles[populationSize + i] -> setLeftSide(populationSide);
+            nextVehicles[populationSize + i] -> generate(0);
+        }
+        for(int i = 0; i < populationSize / 2; ++i)
+        {
+            int id1 = qrand() % populationSize;
+            int id2 = qrand() % populationSize;
+            Vehicle::crossover(vehData[id1], vehData[id2], nextVehicles[populationSize + i * 2],
+                                nextVehicles[populationSize + i * 2 + 1]);
+        }
+
+        for(int i = 0; i < populationSize; ++i)
+        {
+            vehData[i] = nextVehicles[populationSize + i];
+        }
+    } else {
+        for(int i = 0; i < static_cast<int>(nextVehicles.size()); ++i)
+        {
+            for(int j = 0; j < static_cast<int>(nextVehicles.size()) - i - 1; ++j)
             {
-                tmpPair.first = selData[j].first;
-                tmpPair.second = selData[j].second;
-                selData[j].first = selData[j + 1].first;
-                selData[j].second = selData[j + 1].second;
-                selData[j + 1].first = tmpPair.first;
-                selData[j + 1].second = tmpPair.second;
+                if(nextVehicles[j + 1] -> getScore() > nextVehicles[j] -> getScore())
+                {
+                    Vehicle* tmp = nextVehicles[j];
+                    nextVehicles[j] = nextVehicles[j + 1];
+                    nextVehicles[j + 1] = tmp;
+                }
             }
         }
-    }
 
-    for(int i = 0; i < populationSize / 2; ++i)
-    {
-        vehData[i] -> copy(selData[i].second);
-        vehData[populationSize / 2 + i] -> copy(vehData[i]);
-    }
-
-    if(populationSize / 2 > 1)
-    {
-        for(int i = populationSize / 2; i < populationSize; ++i)
+        for(int i = 0; i < populationSize; ++i)
         {
-            int id2 = qrand() % (populationSize / 2) + populationSize / 2;
-            while(id2 == i)
-            {
-                id2 = qrand() % (populationSize / 2) + populationSize / 2;
-            }
-            Vehicle::crossover(vehData[i], vehData[id2]);
+            vehData[i] = nextVehicles[i];
+            delete nextVehicles[populationSize + i];
         }
-    } else if(populationSize == 3)
-    {
-        Vehicle::crossover(vehData[1], vehData[2]);
-    } else if(populationSize == 2)
-    {
-        Vehicle::crossover(vehData[0], vehData[1]);
+        nextVehicles.clear();
     }
 
     // Мутации
@@ -272,16 +276,13 @@ void Population::savePopulation(QString dir)
 
         outSettings << populationType << "\n";
         outSettings << populationSide << "\n";
-
-        for(int i = 0; i < populationSize; ++i)
-            vehData[i] -> save(dir + "veh" + QString::number(i) + ".save");
-
-        for(int i = 0; i < populationSize; ++i)
+        for(int i = 0; i < vehData.size(); ++i)
         {
-            QString tmp = "";
-            tmp.setNum(resData[i], 'f', 5);
-            outScore << tmp << "\n";
+            vehData[i] -> save(dir + "veh" + QString::number(i) + ".save");
+            outScore << vehData[i] -> getScore() << "\n";
         }
+
+
     }
 
     fileSettings -> close();
@@ -331,12 +332,6 @@ void Population::loadPopulation(QString dir)
         {
             vehData[i] = new Vehicle(0,0,0,0);
             vehData[i] -> load(dir + "veh" + QString::number(i) + ".save");
-        }
-
-        resData.resize(populationSize);
-        for(int i = 0; i < populationSize; ++i)
-        {
-            inScore >> resData[i];
         }
     }
 

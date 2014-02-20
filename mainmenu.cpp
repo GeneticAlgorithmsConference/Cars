@@ -1,4 +1,5 @@
 #include "mainmenu.h"
+#include "genetic.h"
 
 MainMenu::MainMenu(QWidget *parent) :
     QWidget(parent)
@@ -36,6 +37,7 @@ MainMenu::MainMenu(QWidget *parent) :
     mainMenuLayout -> setFormAlignment(Qt::AlignBottom | Qt::AlignHCenter);
 
     lastUpdateTime = QTime::currentTime();
+    lastScreenshot = QTime::currentTime();
 
     saveNameLabel = new QLabel(this);
     saveNameLabel -> setText(tr("Name:"));
@@ -83,6 +85,7 @@ MainMenu::MainMenu(QWidget *parent) :
     tmpPallet.setColor(QPalette::WindowText, Qt::white);
     helpLabel -> setPalette(tmpPallet);
     saveNameLabel -> setPalette(tmpPallet);
+    mainMenuLayout -> labelForField(recombinationTypeEdit) -> setPalette(tmpPallet);
     mainMenuLayout -> labelForField(manualEngineControlEdit) -> setPalette(tmpPallet);
     mainMenuLayout -> labelForField(mapLengthEdit) -> setPalette(tmpPallet);
     mainMenuLayout -> labelForField(deltaXEdit) -> setPalette(tmpPallet);
@@ -176,6 +179,7 @@ void MainMenu::keyPressEvent(QKeyEvent *event)
                 if(map -> getFirstPopulation() -> currentEnd())
                 {
                     map -> getFirstPopulation() -> genNextGeneration();
+                    map->save(QDir::currentPath() + "/Saves/AutoSave" + QString::number(map->populationIndex++) + "/");
                 }
                 map -> updateAllPhysics();
             }
@@ -327,6 +331,11 @@ void MainMenu::tick()
     {
         map -> getFirstPopulation() -> getCurrentVehicle() -> setMotorEnabled(false);
     }
+    if(lastScreenshot.secsTo(QTime::currentTime()) >= 30)
+    {
+        screenshot();
+        lastScreenshot = QTime::currentTime();
+    }
     repaint();
 }
 
@@ -422,11 +431,13 @@ void MainMenu::showOptions()
     optionsButton -> setVisible(false);
     helpButton -> setVisible(false);
     exitButton -> setVisible(false);
-
     backButton -> setVisible(true);
+
+    recombinationTypeEdit -> setVisible(true);
     manualEngineControlEdit -> setVisible(true);
 
     mainMenuLayout -> labelForField(manualEngineControlEdit) -> setVisible(true);
+    mainMenuLayout -> labelForField(recombinationTypeEdit) -> setVisible(true);
 }
 
 void MainMenu::showHelp()
@@ -520,9 +531,31 @@ void MainMenu::backButtonClick()
 
     } else if(currentPlace == OPTIONS_MENU)
     {
+        recombinationTypeEdit -> setVisible(false);
         manualEngineControlEdit -> setVisible(false);
 
+        mainMenuLayout -> labelForField(recombinationTypeEdit) -> setVisible(false);
         mainMenuLayout -> labelForField(manualEngineControlEdit) -> setVisible(false);
+
+        if(recombinationTypeEdit -> currentText() == "Discrete")
+        {
+            recombinationType = Genetic::DISCRETE;
+        } else if(recombinationTypeEdit -> currentText() == "Intermediate")
+        {
+            recombinationType = Genetic::INTERMEDIATE;
+        } else if(recombinationTypeEdit -> currentText() == "Line")
+        {
+            recombinationType = Genetic::LINE;
+        } else if(recombinationTypeEdit -> currentText() == "Uniform crossover")
+        {
+            recombinationType = Genetic::UNIFORM_CROSSOVER;
+        } else if(recombinationTypeEdit -> currentText() == "Triadic crossover")
+        {
+            recombinationType = Genetic::TRIADIC_CROSSOVER;
+        } else if(recombinationTypeEdit -> currentText() == "Shuffler crossover")
+        {
+            recombinationType = Genetic::SHUFFLER_CROSSOVER;
+        }
 
         manualEngineControl = (manualEngineControlEdit -> checkState() == Qt::Checked);
 
@@ -850,6 +883,16 @@ void MainMenu::createNewGameMenu()
 
 void MainMenu::createOptionsMenu()
 {
+    recombinationTypeEdit = new QComboBox(this);
+    recombinationTypeEdit -> addItem("Discrete");
+    recombinationTypeEdit -> addItem("Intermediate");
+    recombinationTypeEdit -> addItem("Line");
+    recombinationTypeEdit -> addItem("Uniform crossover");
+    recombinationTypeEdit -> addItem("Triadic crossover");
+    recombinationTypeEdit -> addItem("Shuffler crossover");
+    mainMenuLayout -> addRow("Recombination type: ", recombinationTypeEdit);
+    recombinationTypeEdit -> setVisible(false);
+    mainMenuLayout -> labelForField(recombinationTypeEdit) -> setVisible(false);
     manualEngineControlEdit = new QCheckBox(this);
     manualEngineControlEdit -> setFixedSize(QSize(manualEngineControlEdit -> minimumSizeHint()));
     manualEngineControlEdit -> setVisible(false);

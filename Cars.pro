@@ -52,7 +52,8 @@ HEADERS += \
     vehicle.h \
     AngleVector.h \
     population.h \
-    mainmenu.h
+    mainmenu.h \
+    genetic.h
 
 SOURCES += \
     main.cpp \
@@ -105,6 +106,7 @@ SOURCES += \
     vehicle.cpp \
     AngleVector.cpp \
     population.cpp \
-    mainmenu.cpp
+	mainmenu.cpp \
+    genetic.cpp
 
 OTHER_FILES +=
