@@ -60,7 +60,7 @@ MainMenu::MainMenu(QWidget *parent) :
     createActions();
 
     // Loading help
-    QFile *file = new QFile(QDir::currentPath() + "\\help.txt");
+    QFile *file = new QFile(QDir::currentPath() + "/help.txt");
     if(!file -> open(QIODevice::ReadOnly | QIODevice::Text))
     {
         helpLabel -> setText("Error: help file not found!");
@@ -200,14 +200,14 @@ void MainMenu::keyPressEvent(QKeyEvent *event)
         case Qt::Key_S:
             if(event -> modifiers() == Qt::ControlModifier)
             {
-                QString path = QDir::currentPath() + "\\Saves\\QuickSave";
+                QString path = QDir::currentPath() + "/Saves/QuickSave";
                 map -> save(path);
             }
             break;
         case Qt::Key_L:
             if(event -> modifiers() == Qt::ControlModifier)
             {
-                QString path = QDir::currentPath() + "\\Saves\\QuickSave";
+                QString path = QDir::currentPath() + "/Saves/QuickSave";
                 map -> load(path);
                 map -> updateAllPhysics();
             }
@@ -266,7 +266,7 @@ void MainMenu::screenshot()
     QDate cd = QDate::currentDate();
     QTime ct = QTime::currentTime();
 
-    QString initialPath = QDir::currentPath() + "\\Screenshots\\";
+    QString initialPath = QDir::currentPath() + "/Screenshots/";
     QDir dir(initialPath);
     dir.mkdir(initialPath);
 
@@ -400,7 +400,7 @@ void MainMenu::showLoadGameOptions()
     helpButton -> setVisible(false);
     exitButton -> setVisible(false);
 
-    QDir *dir = new QDir(QDir::currentPath() + "\\Saves\\");
+    QDir *dir = new QDir(QDir::currentPath() + "/Saves/");
     loadName -> clear();
     loadName -> addItems(dir -> entryList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name));
 
@@ -616,12 +616,12 @@ void MainMenu::startNewGame()
 
 void MainMenu::saveGame()
 {
-    map -> save(QDir::currentPath() + "\\Saves\\" + saveName -> text());
+    map -> save(QDir::currentPath() + "/Saves/" + saveName -> text());
 }
 
 void MainMenu::loadGame()
 {
-    map -> load(QDir::currentPath() + "\\Saves\\" + loadName -> currentText());
+    map -> load(QDir::currentPath() + "/Saves/" + loadName -> currentText());
     map -> updateAllPhysics();
 
     if(gameRunning)
@@ -673,7 +673,7 @@ int removeFolder(QString path)
 
 void MainMenu::deleteGame()
 {
-    QString initialPath = QDir::currentPath() + "\\Saves\\" + loadName -> currentText();
+    QString initialPath = QDir::currentPath() + "/Saves/" + loadName -> currentText();
 
     QMessageBox msgBox;
     msgBox.setText(tr("Do you want to delete save \"") + loadName -> currentText() + "\"?");

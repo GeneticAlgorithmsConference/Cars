@@ -240,7 +240,7 @@ void Map::tick()
                 lastRemoveUpdate = QTime::currentTime();
                 leftPopulation -> genNextGeneration();
                 rightPopulation -> genNextGeneration();
-                save(QDir::currentPath() + "\\Saves\\AutoSave\\");
+                save(QDir::currentPath() + "/Saves/AutoSave/");
                 updateAllPhysics();
             } else if(!endTimerStarted) {
                 endTimerStarted = true;
@@ -329,11 +329,11 @@ void Map::save(QString dir)
     QDir qDir(dir);
     qDir.mkpath(dir);
 
-    if(dir[dir.size() - 1] != '\\')
-        dir += '\\';
+    if(dir[dir.size() - 1] != '/')
+        dir += '/';
 
-    leftPopulation -> savePopulation(dir + "LeftPopulation\\");
-    rightPopulation -> savePopulation(dir + "RightPopulation\\");
+    leftPopulation -> savePopulation(dir + "LeftPopulation/");
+    rightPopulation -> savePopulation(dir + "RightPopulation/");
 
     QFile *fileX = new QFile(dir + "mapX.save");
     QFile *fileY = new QFile(dir + "mapY.save");
@@ -385,11 +385,11 @@ void Map::load(QString dir)
     QDir qDir(dir);
     qDir.mkpath(dir);
 
-    if(dir[dir.size() - 1] != '\\')
-        dir += '\\';
+    if(dir[dir.size() - 1] != '/')
+        dir += '/';
 
-    leftPopulation -> loadPopulation(dir + "LeftPopulation\\");
-    rightPopulation -> loadPopulation(dir + "RightPopulation\\");
+    leftPopulation -> loadPopulation(dir + "LeftPopulation/");
+    rightPopulation -> loadPopulation(dir + "RightPopulation/");
 
     QFile *fileX = new QFile(dir + "mapX.save");
     QFile *fileY = new QFile(dir + "mapY.save");
