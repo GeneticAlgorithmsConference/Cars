@@ -432,6 +432,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
     QVector <double> dna2 = (veh2 -> getDNA());
     QVector <double> dna3(dna1.size());
     QVector <double> dna4(dna1.size());
+    int sz = std::min(dna1.size(), dna2.size());
 
     int point_num = veh1 -> pointsNum;
 
@@ -449,7 +450,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
     {
         case Genetic::DISCRETE:
         {
-            for(int i = 0; i < dna1.size(); ++i)
+            for(int i = 0; i < sz; ++i)
             {
                 if(rand() & 1)
                 {
@@ -468,7 +469,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
         }
         case Genetic::INTERMEDIATE:
         {
-             for(int i = 0; i < dna1.size(); ++i)
+             for(int i = 0; i < sz; ++i)
              {
                  double alpha1 = static_cast<double>(rand() % 1000) / 1000.0 * (1.0 + 2.0 * recombine_param) - recombine_param;
                  double alpha2 = static_cast<double>(rand() % 1000) / 1000.0 * (1.0 + 2.0 * recombine_param) - recombine_param;
@@ -484,7 +485,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
          {
              double alpha1 = static_cast<double>(rand() % 1000) / 1000.0 * (1.0 + 2.0 * recombine_param) - recombine_param;
              double alpha2 = static_cast<double>(rand() % 1000) / 1000.0 * (1.0 + 2.0 * recombine_param) - recombine_param;
-             for(int i = 0; i < dna1.size(); ++i)
+             for(int i = 0; i < sz; ++i)
              {
                  double v[2];
                  v[0] = dna1[i] + alpha1 * (dna2[i] - dna1[i]);
@@ -497,12 +498,12 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
          case Genetic::CROSSOVER:
          {
              int crossover_points_num = recombine_param;
-             assert(dna1.size() > 1);
-             assert(dna1.size() >= crossover_points_num);
+             assert(sz > 1);
+             assert(sz >= crossover_points_num);
              assert(crossover_points_num > 0);
 
              // Setting dividing points
-             std::vector <int> free_points(dna1.size());
+             std::vector <int> free_points(sz);
              std::vector <int> crossover_points(crossover_points_num);
              for(int i = 0; i < free_points.size(); ++i)
              {
@@ -518,7 +519,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
 
              std::sort(crossover_points.begin(), crossover_points.end());
              if(crossover_points[crossover_points.size() - 1]
-                != dna1.size() - 1)
+                != sz - 1)
              {
                  crossover_points.push_back(dna1.size() - 1);
              }
@@ -532,7 +533,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
                  int crossover_point = crossover_points[i];
                  next_crossover_point = (i < crossover_points_num - 1) ?
                      crossover_points[i + 1] :
-                     dna1.size();
+                     sz;
 
 
                  if(current_inverse)
@@ -557,7 +558,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
          }
          case Genetic::UNIFORM_CROSSOVER:
          {
-             for(int i = 0; i < dna1.size(); ++i)
+             for(int i = 0; i < sz; ++i)
              {
                  if(rand() & 1)
                  {
@@ -572,7 +573,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
          }
          case Genetic::SHUFFLER_CROSSOVER:
          {
-             for(int i = 0; i < dna1.size(); ++i)
+             for(int i = 0; i < sz; ++i)
              {
                  if(rand() & 1)
                  {
@@ -581,7 +582,7 @@ void Vehicle::crossover(Vehicle *veh1, Vehicle *veh2, Vehicle *veh3, Vehicle *ve
              }
 //             recombine(parent_Individual1, parent_Individual2,
 //                       child_Individual1, child_Individual2, &ts);
-             for(int i = 0; i < dna1.size(); ++i)
+             for(int i = 0; i < sz; ++i)
              {
                  if(rand() & 1)
                  {

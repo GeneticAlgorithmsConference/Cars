@@ -100,6 +100,8 @@ MainMenu::MainMenu(QWidget *parent) :
     mainMenuLayout -> labelForField(vehicleVectorLengthEdit) -> setPalette(tmpPallet);
     mainMenuLayout -> labelForField(vehicleWheelsSizeEdit) -> setPalette(tmpPallet);
 
+    populationTestTypeEdit -> setChecked(true);
+
     showFullScreen();
 }
 
@@ -540,21 +542,27 @@ void MainMenu::backButtonClick()
         if(recombinationTypeEdit -> currentText() == "Discrete")
         {
             recombinationType = Genetic::DISCRETE;
+            Vehicle::recombine_param = 0.75;
         } else if(recombinationTypeEdit -> currentText() == "Intermediate")
         {
             recombinationType = Genetic::INTERMEDIATE;
+            Vehicle::recombine_param = 0.75;
         } else if(recombinationTypeEdit -> currentText() == "Line")
         {
             recombinationType = Genetic::LINE;
+            Vehicle::recombine_param = 0.75;
         } else if(recombinationTypeEdit -> currentText() == "Uniform crossover")
         {
             recombinationType = Genetic::UNIFORM_CROSSOVER;
+            Vehicle::recombine_param = 3;
         } else if(recombinationTypeEdit -> currentText() == "Triadic crossover")
         {
             recombinationType = Genetic::TRIADIC_CROSSOVER;
+            Vehicle::recombine_param = 3;
         } else if(recombinationTypeEdit -> currentText() == "Shuffler crossover")
         {
             recombinationType = Genetic::SHUFFLER_CROSSOVER;
+            Vehicle::recombine_param = 3;
         }
 
         manualEngineControl = (manualEngineControlEdit -> checkState() == Qt::Checked);
@@ -656,6 +664,7 @@ void MainMenu::loadGame()
 {
     map -> load(QDir::currentPath() + "/Saves/" + loadName -> currentText());
     map -> updateAllPhysics();
+    map -> setShowInfo(true);
 
     if(gameRunning)
     {

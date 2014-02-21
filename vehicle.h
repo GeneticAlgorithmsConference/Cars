@@ -55,6 +55,8 @@ public:
 
     static int waitingTime;
     static double minLength;
+    static double recombine_param;
+
 private:
     // Векторы из центральной точки
     QVector <AngleVector> vectors;
@@ -96,8 +98,6 @@ private:
 
     double vectorLength;
     double wheelRadius;
-
-    static double recombine_param;
 
     b2Vec2 lastUpdatePoint;
 };
