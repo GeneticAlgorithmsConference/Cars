@@ -24,6 +24,7 @@ Population::Population(int _populationSize, bool _populationType, bool _populati
 
 void Population::initPopulation(b2World *world, double rightX, double rightY)
 {
+    nextVehicles.clear();
     updateVehiclesCount();
     double deltaX = rightX + 5.0;
     double deltaY = rightY + 5.0;
@@ -77,31 +78,32 @@ void Population::genNextGeneration()
 
     if(nextVehicles.empty())
     {
-        nextVehicles.resize(populationSize * 2);
-        for(int i = 0; i < populationSize; ++i)
+        nextVehicles.resize(vehData.size() * 2);
+        for(int i = 0; i < vehData.size(); ++i)
         {
             nextVehicles[i] = vehData[i];
         }
-        for(int i = 0; i < populationSize; ++i)
+        for(int i = 0; i < vehData.size(); ++i)
         {
-            nextVehicles[populationSize + i] = new Vehicle(5.0 * (populationType ? (i + 1) : 1.0), 5.0,
+            nextVehicles[vehData.size() + i] = new Vehicle(5.0 * (populationType ? (i + 1) : 1.0), 5.0,
                                                            vehiclePointsNum, vehicleMaxWheelsNum);
-            nextVehicles[populationSize + i] -> setVectorLength(vehicleVectorLength);
-            nextVehicles[populationSize + i] -> setWheelRadius(vehicleWheelsSize);
-            nextVehicles[populationSize + i] -> setLeftSide(populationSide);
-            nextVehicles[populationSize + i] -> generate(0);
+            nextVehicles[vehData.size() + i] -> setVectorLength(vehicleVectorLength);
+            nextVehicles[vehData.size() + i] -> setWheelRadius(vehicleWheelsSize);
+            nextVehicles[vehData.size() + i] -> setLeftSide(populationSide);
+            nextVehicles[vehData.size() + i] -> generate(0);
         }
-        for(int i = 0; i < populationSize / 2; ++i)
+        for(int i = 0; i < vehData.size() / 2; ++i)
         {
-            int id1 = qrand() % populationSize;
-            int id2 = qrand() % populationSize;
-            Vehicle::crossover(vehData[id1], vehData[id2], nextVehicles[populationSize + i * 2],
-                                nextVehicles[populationSize + i * 2 + 1]);
+            int id1 = qrand() % vehData.size();
+            int id2 = qrand() % vehData.size();
+            Vehicle::crossover(vehData[id1], vehData[id2], nextVehicles[vehData.size() + i * 2],
+                                nextVehicles[vehData.size() + i * 2 + 1]);
         }
 
-        for(int i = 0; i < populationSize; ++i)
+        for(int i = 0; i < vehData.size(); ++i)
         {
-            vehData[i] = nextVehicles[populationSize + i];
+            vehData[i] = nextVehicles[vehData.size() + i];
+            vehData[i] -> mutate(maxMutationsCount);
         }
     } else {
         for(int i = 0; i < static_cast<int>(nextVehicles.size()); ++i)
@@ -117,18 +119,37 @@ void Population::genNextGeneration()
             }
         }
 
-        for(int i = 0; i < populationSize; ++i)
+        for(int i = 0; i < vehData.size(); ++i)
         {
             vehData[i] = nextVehicles[i];
-            delete nextVehicles[populationSize + i];
+            delete nextVehicles[vehData.size() + i];
         }
-        nextVehicles.clear();
-    }
+        for(int i = 0; i < vehData.size(); ++i)
+        {
+            nextVehicles[i] = vehData[i];
+        }
+        for(int i = 0; i < vehData.size(); ++i)
+        {
+            nextVehicles[vehData.size() + i] = new Vehicle(5.0 * (populationType ? (i + 1) : 1.0), 5.0,
+                                                           vehiclePointsNum, vehicleMaxWheelsNum);
+            nextVehicles[vehData.size() + i] -> setVectorLength(vehicleVectorLength);
+            nextVehicles[vehData.size() + i] -> setWheelRadius(vehicleWheelsSize);
+            nextVehicles[vehData.size() + i] -> setLeftSide(populationSide);
+            nextVehicles[vehData.size() + i] -> generate(0);
+        }
+        for(int i = 0; i < vehData.size() / 2; ++i)
+        {
+            int id1 = qrand() % vehData.size();
+            int id2 = qrand() % vehData.size();
+            Vehicle::crossover(vehData[id1], vehData[id2], nextVehicles[vehData.size() + i * 2],
+                                nextVehicles[vehData.size() + i * 2 + 1]);
+        }
 
-    // Мутации
-    for(int i = 0; i < populationSize; ++i)
-    {
-        vehData[i] -> mutate(maxMutationsCount);
+        for(int i = 0; i < vehData.size(); ++i)
+        {
+            vehData[i] = nextVehicles[vehData.size() + i];
+            vehData[i] -> mutate(maxMutationsCount);
+        }
     }
 
 //    // Сортировка по очкам. Спереди лучшие машины.
@@ -151,7 +172,7 @@ void Population::genNextGeneration()
         if(populationSide)
         {
             double maxXValue = 0.0;
-            for(int i = 0; i < populationSize; ++i)
+            for(int i = 0; i < vehData.size(); ++i)
             {
                 if(vehData[i] -> getX() > maxXValue)
                 {
@@ -159,13 +180,13 @@ void Population::genNextGeneration()
                 }
             }
 
-            for(int i = 0; i < populationSize; ++i)
+            for(int i = 0; i < vehData.size(); ++i)
             {
                 vehData[i] -> setX(maxXValue - i * 5.0);
             }
         } else {
             double minXValue = 999999.0;
-            for(int i = 0; i < populationSize; ++i)
+            for(int i = 0; i < vehData.size(); ++i)
             {
                 if(vehData[i] -> getX() < minXValue)
                 {
@@ -173,7 +194,7 @@ void Population::genNextGeneration()
                 }
             }
 
-            for(int i = 0; i < populationSize; ++i)
+            for(int i = 0; i < vehData.size(); ++i)
             {
                 vehData[i] -> setX(minXValue + i * 5.0);
             }
@@ -293,6 +314,7 @@ void Population::loadPopulation(QString dir)
 {
     QFile *fileScore = new QFile(dir + "score.save");
     QFile *fileSettings = new QFile(dir + "sets.save");
+    nextVehicles.clear();
 
     if (! fileSettings -> open(QIODevice::ReadOnly | QIODevice::Text) ||
             ! fileScore -> open(QIODevice::ReadOnly | QIODevice::Text))
